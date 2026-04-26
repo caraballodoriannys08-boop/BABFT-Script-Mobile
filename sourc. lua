@@ -1,0 +1,145 @@
+--[[
+    BUILD A BOAT FOR TREASURE - SCRIPT PERSONALIZADO
+    Creado por: [Tu nombre]
+    Para: Delta Executor (Móvil)
+]]
+
+-- ========== CONFIGURACIÓN ==========
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- ========== VARIABLES ==========
+local farming = false
+local noclipActive = false
+
+-- ========== FUNCIONES ==========
+
+-- 1. AUTO FARM (Recolectar oro automático)
+local function startAutoFarm()
+    farming = true
+    while farming do
+        task.wait(0.3)
+        -- Busca oro cercano
+        local parts = workspace:GetPartsInPart(character.HumanoidRootPart)
+        for _, part in pairs(parts) do
+            if part.Name:lower():find("gold") or part.Name:lower():find("coin") then
+                -- Intenta recolectar
+                local cd = part:FindFirstChild("ClickDetector")
+                if cd then
+                    fireclickdetector(cd)
+                end
+            end
+        end
+    end
+end
+
+-- 2. VELOCIDAD
+local function setSpeed(multiplier)
+    humanoid.WalkSpeed = 16 * multiplier
+    humanoid.JumpPower = 50 * multiplier
+end
+
+-- 3. TELEPORT (a lugares específicos del mapa)
+local teleports = {
+    shop = CFrame.new(0, 10, 100),
+    endZone = CFrame.new(0, 50, 1500),
+    start = CFrame.new(0, 10, 0)
+}
+
+local function teleportTo(location)
+    if teleports[location] then
+        character.HumanoidRootPart.CFrame = teleports[location]
+    end
+end
+
+-- ========== GUI BÁSICA (Interfaz táctil) ==========
+local function createMobileGUI()
+    local screenGui = Instance.new("ScreenGui")
+    local mainFrame = Instance.new("Frame")
+    local farmBtn = Instance.new("TextButton")
+    local speedBtn = Instance.new("TextButton")
+    local teleMenu = Instance.new("Frame")
+    
+    screenGui.Parent = player.PlayerGui
+    screenGui.Name = "BABFT_Script"
+    
+    -- Frame principal
+    mainFrame.Parent = screenGui
+    mainFrame.Size = UDim2.new(0, 180, 0, 250)
+    mainFrame.Position = UDim2.new(0, 10, 0, 50)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    mainFrame.BackgroundTransparency = 0.1
+    
+    -- Botón Auto Farm
+    farmBtn.Parent = mainFrame
+    farmBtn.Size = UDim2.new(0, 160, 0, 45)
+    farmBtn.Position = UDim2.new(0, 10, 0, 10)
+    farmBtn.Text = "🔴 Auto Farm OFF"
+    farmBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    farmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    
+    farmBtn.MouseButton1Click:Connect(function()
+        if farming then
+            farming = false
+            farmBtn.Text = "🟢 Auto Farm OFF"
+        else
+            farming = true
+            farmBtn.Text = "🔴 Auto Farm ON"
+            task.spawn(startAutoFarm)
+        end
+    end)
+    
+    -- Botón Velocidad
+    speedBtn.Parent = mainFrame
+    speedBtn.Size = UDim2.new(0, 160, 0, 45)
+    speedBtn.Position = UDim2.new(0, 10, 0, 65)
+    speedBtn.Text = "⚡ Velocidad x2"
+    speedBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    
+    local speedLevel = 1
+    speedBtn.MouseButton1Click:Connect(function()
+        speedLevel = speedLevel == 1 and 2 or 1
+        setSpeed(speedLevel)
+        speedBtn.Text = "⚡ Velocidad x" .. speedLevel
+    end)
+    
+    -- Menú de Teletransportes
+    local teleBtn = Instance.new("TextButton")
+    teleBtn.Parent = mainFrame
+    teleBtn.Size = UDim2.new(0, 160, 0, 45)
+    teleBtn.Position = UDim2.new(0, 10, 0, 120)
+    teleBtn.Text = "🌀 Teletransportes"
+    teleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+    
+    teleMenu.Parent = screenGui
+    teleMenu.Size = UDim2.new(0, 140, 0, 120)
+    teleMenu.Position = UDim2.new(0, 200, 0, 50)
+    teleMenu.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    teleMenu.BackgroundTransparency = 0.15
+    teleMenu.Visible = false
+    
+    local function createTeleButton(text, pos, locName)
+        local btn = Instance.new("TextButton")
+        btn.Parent = teleMenu
+        btn.Size = UDim2.new(0, 120, 0, 30)
+        btn.Position = UDim2.new(0, 10, 0, pos)
+        btn.Text = text
+        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        btn.MouseButton1Click:Connect(function() teleportTo(locName) end)
+    end
+    
+    createTeleButton("🏪 Tienda", 10, "shop")
+    createTeleButton("🏁 Final", 50, "endZone")
+    createTeleButton("🚀 Inicio", 90, "start")
+    
+    teleBtn.MouseButton1Click:Connect(function()
+        teleMenu.Visible = not teleMenu.Visible
+    end)
+    
+    print("✅ GUI de BABFT cargada en Delta")
+end
+
+-- Iniciar todo
+createMobileGUI()
+primera versión 
